@@ -1,6 +1,6 @@
-function convert(base_dir, output_dir)
+function convert(base_dir, sub_dir, output_dir)
     % Get a list of iteration directories (0, 1, 2, ..., 9) in the 'dat' folder
-    dat_dir = fullfile(base_dir, 'dat');
+    dat_dir = fullfile(base_dir, sub_dir);
     csv_dir = fullfile(base_dir, output_dir);
 
     % Create the output 'csv' directory if it doesn't exist
@@ -40,4 +40,4 @@ function convert(base_dir, output_dir)
     end
 end
 
-% process_and_convert('../data', '../data/csv');
+% convert('../data', '../data/csv');
