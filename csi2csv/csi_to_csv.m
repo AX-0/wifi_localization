@@ -1,13 +1,27 @@
-% This MATLAB scripts translates the content of the .dat file read using the Atheros-CSI-Tool-UserSpace-APP
-% to a .csv file. It is specifically written for data sent/recevied from devices with 56 subcarriers and 2 antennas.
 function csi_to_csv(log_filename, csv_filename)
     % Read the log file with the read_log_file function
     csi_data = read_log_file(log_filename);
     
+    % Extract with_receiver and coordinates from the filename
+    [~, name, ~] = fileparts(log_filename); % Get the file name without extension
+    parts = strsplit(name, '_');
+    with_without_str = parts{1}; % "w" or "wo" (with/without carrying receiver)
+    coord1 = str2double(parts{2}); % Coordinate 1 (x)
+    coord2 = str2double(parts{3}); % Coordinate 2 (y)
+    
+    % Map "w" to 1 and "wo" to 0 for with_receiver
+    if strcmp(with_without_str, 'w')
+        with_receiver = 1;
+    elseif strcmp(with_without_str, 'wo')
+        with_receiver = 0;
+    else
+        error('Unrecognized with/without receiver indicator: %s', with_without_str);
+    end
+    
     % Prepare to collect data for CSV output
     num_records = length(csi_data);
     total_entries = num_records * 56; % Each record has 56 subcarriers***
-    records = cell(total_entries, 21); % Adjust size based on the number of columns
+    records = cell(total_entries, 24); % Adjust size based on the number of columns
 
     % Initialize entry counter
     entry_counter = 1;
@@ -65,13 +79,18 @@ function csi_to_csv(log_filename, csv_filename)
                 records{entry_counter, 21} = NaN;
             end
             
+            % Add the with_receiver flag and coordinates
+            records{entry_counter, 22} = with_receiver; % 1 for with, 0 for without
+            records{entry_counter, 23} = coord1; % Coordinate 1
+            records{entry_counter, 24} = coord2; % Coordinate 2
+            
             % Increment the entry counter
             entry_counter = entry_counter + 1;
         end
     end
     
     % Convert to table
-    column_names = {'timestamps', 'csi_len', 'channel', 'err_info', 'noise_floor', 'rate', 'bandWidth', 'num_tones', 'nr', 'nc', 'rssi', 'rssi1', 'rssi2', 'rssi3', 'payload_length', 'block_length', 'subcarriers', 'ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase'};
+    column_names = {'timestamps', 'csi_len', 'channel', 'err_info', 'noise_floor', 'rate', 'bandWidth', 'num_tones', 'nr', 'nc', 'rssi', 'rssi1', 'rssi2', 'rssi3', 'payload_length', 'block_length', 'subcarriers', 'ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'with_receiver', 'coord1', 'coord2'};
     T = cell2table(records, 'VariableNames', column_names);
     
     % Write the table to a CSV file
