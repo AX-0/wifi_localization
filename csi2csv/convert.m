@@ -40,4 +40,4 @@ function convert(base_dir, sub_dir, output_dir)
     end
 end
 
-% convert('../data', '../data/csv');
+% convert('../data', '/dat/still_with_receiver', '/csv/still_with_receiver')
