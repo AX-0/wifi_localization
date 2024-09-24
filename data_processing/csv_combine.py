@@ -88,6 +88,6 @@ for directory in directories:
 # Combine all combined CSVs in each main directory
 for directory in directories:
     dir_path = os.path.join(base_path, directory)
-    combine_csv_mode(dir_path, directory)
+    combine_csv_mode(dir_path, f"{directory}.csv")
 
 combine_final_csv_files(base_path, output_directory='.')
