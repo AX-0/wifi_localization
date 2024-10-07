@@ -2,7 +2,13 @@ import sys
 import os
 import pandas as pd
 
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+from sklearn.cluster import DBSCAN
+import hdbscan
+
 # python csv_combine.py "C:\Users\alanx\OneDrive - The University of Sydney (Students)\Thesis\Deep Learning\wifi_localization\data\csv"
+# python3 csv_combine.py /home/alan-xie/Documents/Thesis/wifi_localization/data/csv
 
 def combine_csv_round(base_directory):
     # Iterate over all subdirectories within the base directory
@@ -16,8 +22,43 @@ def combine_csv_round(base_directory):
             # Find all CSV files in this subdirectory
             for file in os.listdir(subdir_path):
                 if file.endswith('.csv'):
+                    if 'combined' in file:
+                        continue
+                    
+                    print(f"processing file: {file}")
                     file_path = os.path.join(subdir_path, file)
                     df = pd.read_csv(file_path)
+
+                    ##############################################################
+                    variances = df.var()
+
+                    low_variance_cols = variances[variances < 5e-3].index.tolist()
+
+                    # df.drop(low_variance_cols, axis=1, inplace=True)
+                    
+                    df.drop(['rssi3', 'nr', 'num_tones', 'bandWidth', 'noise_floor', 'err_info', 'channel', 'csi_len', 'rate', 'payload_length', 'block_length'], axis=1, inplace=True)
+                    df.drop('timestamps', axis=1, inplace=True)
+                    # print(df.head())
+                    
+                    features_to_scale = ['ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
+                    scaler = StandardScaler()
+
+                    df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
+                    
+                    ant1_amplitude = df[['subcarriers', 'ant1_amplitude']].values
+                    ant1_dbscan = hdbscan.HDBSCAN(min_samples=10, core_dist_n_jobs=-1)
+                    ant1_dbscan.fit(ant1_amplitude)
+                    df['ant1_amplitude_cluster'] = ant1_dbscan.labels_
+                    
+                    ant2_amplitude = df[['subcarriers', 'ant2_amplitude']].values
+                    ant2_dbscan = hdbscan.HDBSCAN(min_samples=30, core_dist_n_jobs=-1)
+                    ant2_dbscan.fit(ant2_amplitude)
+                    df['ant2_amplitude_cluster'] = ant2_dbscan.labels_
+                    
+                    df.drop(df[df.ant1_amplitude_cluster < 0].index, inplace=True)
+                    df.drop(df[df.ant2_amplitude_cluster < 0].index, inplace=True)
+                    ##############################################################
+    
                     frames.append(df)
             
             # Check if there are any data frames to concatenate
