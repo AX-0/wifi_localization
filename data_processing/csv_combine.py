@@ -4,11 +4,13 @@ import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
-from sklearn.cluster import DBSCAN
-import hdbscan
+# from sklearn.cluster import DBSCAN
+# import hdbscan
 
 # python csv_combine.py "C:\Users\alanx\OneDrive - The University of Sydney (Students)\Thesis\Deep Learning\wifi_localization\data\csv"
 # python3 csv_combine.py /home/alan-xie/Documents/Thesis/wifi_localization/data/csv
+
+num_subcarriers = 56
 
 def combine_csv_round(base_directory):
     # Iterate over all subdirectories within the base directory
@@ -40,26 +42,37 @@ def combine_csv_round(base_directory):
                     df.drop('timestamps', axis=1, inplace=True)
                     # print(df.head())
                     
-                    features_to_scale = ['ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
-                    scaler = StandardScaler()
+                    # Create an empty DataFrame to hold the valid batches
+                    valid_batches_df = pd.DataFrame()
 
-                    df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
+                    # Loop through batches of 56 rows
+                    for i in range(len(df) // num_subcarriers):
+                        start = i * num_subcarriers
+                        end = start + num_subcarriers
+                        
+                        # Extract the full batch (all columns)
+                        batch = df.iloc[start:end]
+                        
+                        # Calculate the difference between maximum and minimum amplitude in the batch
+                        ant1_amplitude_range = batch["ant1_amplitude"].max() - batch["ant1_amplitude"].min()
+                        ant2_amplitude_range = batch["ant2_amplitude"].max() - batch["ant2_amplitude"].min()
+                        
+                        # Filter: only keep batches where the difference is larger than 200
+                        if ant1_amplitude_range >= 200 and ant2_amplitude_range >= 100:
+                            # Append valid batches to the DataFrame
+                            valid_batches_df = pd.concat([valid_batches_df, batch], ignore_index=True)
                     
-                    ant1_amplitude = df[['subcarriers', 'ant1_amplitude']].values
-                    ant1_dbscan = hdbscan.HDBSCAN(min_samples=10, core_dist_n_jobs=-1)
-                    ant1_dbscan.fit(ant1_amplitude)
-                    df['ant1_amplitude_cluster'] = ant1_dbscan.labels_
-                    
-                    ant2_amplitude = df[['subcarriers', 'ant2_amplitude']].values
-                    ant2_dbscan = hdbscan.HDBSCAN(min_samples=30, core_dist_n_jobs=-1)
-                    ant2_dbscan.fit(ant2_amplitude)
-                    df['ant2_amplitude_cluster'] = ant2_dbscan.labels_
-                    
-                    df.drop(df[df.ant1_amplitude_cluster < 0].index, inplace=True)
-                    df.drop(df[df.ant2_amplitude_cluster < 0].index, inplace=True)
+                    if len(valid_batches_df) != 0:
+                        features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
+                        scaler = StandardScaler()
+
+                        valid_batches_df[features_to_scale] = scaler.fit_transform(valid_batches_df[features_to_scale])
+                        
                     ##############################################################
-    
-                    frames.append(df)
+        
+                        frames.append(valid_batches_df)
+                    else:
+                        print("No valid amplitude, skipped.")
             
             # Check if there are any data frames to concatenate
             if frames:
