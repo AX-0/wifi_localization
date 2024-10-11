@@ -1,4 +1,5 @@
 *.csv
+!still.csv
 
 myenv/
 env/
