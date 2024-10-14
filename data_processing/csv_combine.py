@@ -40,30 +40,57 @@ def combine_csv_round(base_directory):
                     df.drop('timestamps', axis=1, inplace=True)
                     # print(df.head())
                     
-                    df = df[df['nc'] == 1]
+                    # df = df[df['nc'] == 1]
                     
-                    if not df.empty:
-                        ant1_amplitude = df[['subcarriers', 'ant1_amplitude']].values
-                        ant1_dbscan = hdbscan.HDBSCAN(min_samples=2*df.shape[1], core_dist_n_jobs=-1)
+                    df_nc1 = df.loc[df['nc'] == 1].copy()
+                    df_nc2 = df.loc[df['nc'] == 2].copy()
+
+                    
+                    if not df_nc1.empty:
+                        ant1_amplitude = df_nc1[['subcarriers', 'ant1_amplitude']].values
+                        ant1_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc1.shape[1], core_dist_n_jobs=-1)
                         ant1_dbscan.fit(ant1_amplitude)
-                        df['ant1_amplitude_cluster'] = ant1_dbscan.labels_
+                        df_nc1['ant1_amplitude_cluster'] = ant1_dbscan.labels_
                         
-                        ant2_amplitude = df[['subcarriers', 'ant2_amplitude']].values
-                        ant2_dbscan = hdbscan.HDBSCAN(min_samples=2*df.shape[1], core_dist_n_jobs=-1)
+                        ant2_amplitude = df_nc1[['subcarriers', 'ant2_amplitude']].values
+                        ant2_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc1.shape[1], core_dist_n_jobs=-1)
                         ant2_dbscan.fit(ant2_amplitude)
-                        df['ant2_amplitude_cluster'] = ant2_dbscan.labels_
+                        df_nc1['ant2_amplitude_cluster'] = ant2_dbscan.labels_
                         
-                        df.drop(df[df.ant1_amplitude_cluster < 0].index, inplace=True)
-                        df.drop(df[df.ant2_amplitude_cluster < 0].index, inplace=True)
+                        df_nc1.drop(df_nc1[df_nc1.ant1_amplitude_cluster < 0].index, inplace=True)
+                        df_nc1.drop(df_nc1[df_nc1.ant2_amplitude_cluster < 0].index, inplace=True)
                         
-                    if not df.empty:
+                    if not df_nc1.empty:
                         features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
                         scaler = StandardScaler()
 
-                        df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
+                        df_nc1[features_to_scale] = scaler.fit_transform(df_nc1[features_to_scale])
+                        
+                        
+                        
+                    if not df_nc2.empty:
+                        ant1_amplitude = df_nc2[['subcarriers', 'ant1_amplitude']].values
+                        ant1_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc2.shape[1], core_dist_n_jobs=-1)
+                        ant1_dbscan.fit(ant1_amplitude)
+                        df_nc2['ant1_amplitude_cluster'] = ant1_dbscan.labels_
+                        
+                        ant2_amplitude = df_nc2[['subcarriers', 'ant2_amplitude']].values
+                        ant2_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc2.shape[1], core_dist_n_jobs=-1)
+                        ant2_dbscan.fit(ant2_amplitude)
+                        df_nc2['ant2_amplitude_cluster'] = ant2_dbscan.labels_
+                        
+                        df_nc2.drop(df_nc2[df_nc2.ant1_amplitude_cluster < 0].index, inplace=True)
+                        df_nc2.drop(df_nc2[df_nc2.ant2_amplitude_cluster < 0].index, inplace=True)
+                        
+                    if not df_nc2.empty:
+                        features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
+                        scaler = StandardScaler()
+
+                        df_nc2[features_to_scale] = scaler.fit_transform(df_nc2[features_to_scale])
                     ##############################################################
     
-                    frames.append(df)
+                    frames.append(df_nc1)
+                    frames.append(df_nc2)
             
             # Check if there are any data frames to concatenate
             if frames:
