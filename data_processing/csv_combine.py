@@ -2,6 +2,9 @@ import sys
 import os
 import pandas as pd
 
+import numpy as np
+from scipy.signal import detrend
+
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 from sklearn.cluster import DBSCAN
@@ -57,6 +60,12 @@ def combine_csv_round(base_directory):
                         df.drop(df[df.ant2_amplitude_cluster < 0].index, inplace=True)
                         
                     if not df.empty:
+                        df['ant1_phase'] = np.unwrap(df['ant1_phase'].values)
+                        df['ant2_phase'] = np.unwrap(df['ant2_phase'].values)
+                        
+                        df['ant1_phase'] = detrend(df['ant1_phase'].values)
+                        df['ant2_phase'] = detrend(df['ant2_phase'].values)
+                        
                         features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
                         scaler = StandardScaler()
 
