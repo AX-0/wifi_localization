@@ -1,6 +1,9 @@
 *.csv
 !still.csv
 
+checkpoint/
+logs/
+
 myenv/
 env/
 .venv/

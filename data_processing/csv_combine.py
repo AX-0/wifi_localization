@@ -55,12 +55,16 @@ def combine_csv_round(base_directory):
                         
                         df.drop(df[df.ant1_amplitude_cluster < 0].index, inplace=True)
                         df.drop(df[df.ant2_amplitude_cluster < 0].index, inplace=True)
+                    else:
+                        print(f"Skipping {file}")
                         
                     if not df.empty:
                         features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
                         scaler = StandardScaler()
 
                         df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
+                    else:
+                        print(f"Skipping {file}")
                     ##############################################################
     
                     frames.append(df)
