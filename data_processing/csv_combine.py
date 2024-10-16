@@ -9,6 +9,7 @@ import hdbscan
 
 # python csv_combine.py "C:\Users\alanx\OneDrive - The University of Sydney (Students)\Thesis\Deep Learning\wifi_localization\data\csv"
 # python3 csv_combine.py /home/alan-xie/Documents/Thesis/wifi_localization/data/csv
+# python3.10 csv_combine.py /home/alan-xie/Desktop/wifi_localization/data/csv
 
 def combine_csv_round(base_directory):
     # Iterate over all subdirectories within the base directory
@@ -36,8 +37,8 @@ def combine_csv_round(base_directory):
 
                     # df.drop(low_variance_cols, axis=1, inplace=True)
                     
-                    df.drop(['rssi3', 'nr', 'num_tones', 'bandWidth', 'noise_floor', 'err_info', 'channel', 'csi_len', 'rate', 'payload_length', 'block_length'], axis=1, inplace=True)
-                    df.drop('timestamps', axis=1, inplace=True)
+                    # df.drop(['rssi3', 'nr', 'num_tones', 'bandWidth', 'noise_floor', 'err_info', 'channel', 'csi_len', 'rate', 'payload_length', 'block_length'], axis=1, inplace=True)
+                    # df.drop('timestamps', axis=1, inplace=True)
                     # print(df.head())
                     
                     # df = df[df['nc'] == 1]
@@ -82,11 +83,11 @@ def combine_csv_round(base_directory):
                         df_nc2.drop(df_nc2[df_nc2.ant1_amplitude_cluster < 0].index, inplace=True)
                         df_nc2.drop(df_nc2[df_nc2.ant2_amplitude_cluster < 0].index, inplace=True)
                         
-                    if not df_nc2.empty:
-                        features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
-                        scaler = StandardScaler()
+                    # if not df_nc2.empty:
+                    #     features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
+                    #     scaler = StandardScaler()
 
-                        df_nc2[features_to_scale] = scaler.fit_transform(df_nc2[features_to_scale])
+                    #     df_nc2[features_to_scale] = scaler.fit_transform(df_nc2[features_to_scale])
                     ##############################################################
     
                     frames.append(df_nc1)
@@ -150,16 +151,16 @@ base_path = sys.argv[1]
 print(base_path)
 
 # Directory names under the base path
-directories = ['still', 'still_with_receiver']
+directories = ['still'] #, 'still_with_receiver']
 
 # Combine CSV files in each directory
-for directory in directories:
-    directory_path = os.path.join(base_path, directory)
-    combine_csv_round(directory_path)
+# for directory in directories:
+#     directory_path = os.path.join(base_path, directory)
+#     combine_csv_round(directory_path)
     
 # Combine all combined CSVs in each main directory
 for directory in directories:
     dir_path = os.path.join(base_path, directory)
     combine_csv_mode(dir_path, f"{directory}.csv")
 
-combine_final_csv_files(base_path, output_directory='.')
+# combine_final_csv_files(base_path, output_directory='.')
