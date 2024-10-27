@@ -30,22 +30,13 @@ def combine_csv_round(base_directory):
                     file_path = os.path.join(subdir_path, file)
                     df = pd.read_csv(file_path)
 
-                    ##############################################################
-                    variances = df.var()
-
-                    low_variance_cols = variances[variances < 5e-3].index.tolist()
-
-                    # df.drop(low_variance_cols, axis=1, inplace=True)
-                    
-                    # df.drop(['rssi3', 'nr', 'num_tones', 'bandWidth', 'noise_floor', 'err_info', 'channel', 'csi_len', 'rate', 'payload_length', 'block_length'], axis=1, inplace=True)
-                    # df.drop('timestamps', axis=1, inplace=True)
-                    # print(df.head())
-                    
-                    # df = df[df['nc'] == 1]
-                    
+                    ##############################################################    
+                    features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
+                    scaler = StandardScaler()
+                    df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
+                                    
                     df_nc1 = df.loc[df['nc'] == 1].copy()
                     df_nc2 = df.loc[df['nc'] == 2].copy()
-
                     
                     if not df_nc1.empty:
                         ant1_amplitude = df_nc1[['subcarriers', 'ant1_amplitude']].values
@@ -59,14 +50,7 @@ def combine_csv_round(base_directory):
                         df_nc1['ant2_amplitude_cluster'] = ant2_dbscan.labels_
                         
                         df_nc1.drop(df_nc1[df_nc1.ant1_amplitude_cluster < 0].index, inplace=True)
-                        df_nc1.drop(df_nc1[df_nc1.ant2_amplitude_cluster < 0].index, inplace=True)
-                        
-                    if not df_nc1.empty:
-                        features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
-                        scaler = StandardScaler()
-
-                        df_nc1[features_to_scale] = scaler.fit_transform(df_nc1[features_to_scale])
-                        
+                        df_nc1.drop(df_nc1[df_nc1.ant2_amplitude_cluster < 0].index, inplace=True)                        
                         
                         
                     if not df_nc2.empty:
@@ -82,12 +66,6 @@ def combine_csv_round(base_directory):
                         
                         df_nc2.drop(df_nc2[df_nc2.ant1_amplitude_cluster < 0].index, inplace=True)
                         df_nc2.drop(df_nc2[df_nc2.ant2_amplitude_cluster < 0].index, inplace=True)
-                        
-                    # if not df_nc2.empty:
-                    #     features_to_scale = ['ant1_amplitude', 'ant2_amplitude', 'ant1_phase', 'ant2_phase', 'rssi', 'rssi1', 'rssi2']
-                    #     scaler = StandardScaler()
-
-                    #     df_nc2[features_to_scale] = scaler.fit_transform(df_nc2[features_to_scale])
                     ##############################################################
     
                     frames.append(df_nc1)
