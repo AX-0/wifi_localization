@@ -36,14 +36,16 @@ def combine_csv_round(base_directory):
                     scaler = StandardScaler()
                     df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
                     
-                    df['ant1_amplitude'] = savgol_filter(df['ant1_amplitude'], window_length=5, polyorder=2)
-                    df['ant2_amplitude'] = savgol_filter(df['ant2_amplitude'], window_length=5, polyorder=2)
+
                     
                     df_nc1 = df.loc[df['nc'] == 1].copy()
                     df_nc2 = df.loc[df['nc'] == 2].copy()
 
                     
                     if not df_nc1.empty:
+                        df_nc1['ant1_amplitude'] = savgol_filter(df_nc1['ant1_amplitude'], window_length=5, polyorder=2)
+                        df_nc1['ant2_amplitude'] = savgol_filter(df_nc1['ant2_amplitude'], window_length=5, polyorder=2)
+                    
                         ant1_amplitude = df_nc1[['subcarriers', 'ant1_amplitude']].values
                         ant1_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc1.shape[1], core_dist_n_jobs=-1)
                         ant1_dbscan.fit(ant1_amplitude)
@@ -58,6 +60,9 @@ def combine_csv_round(base_directory):
                         df_nc1.drop(df_nc1[df_nc1.ant2_amplitude_cluster < 0].index, inplace=True)    
                         
                     if not df_nc2.empty:
+                        df_nc2['ant1_amplitude'] = savgol_filter(df_nc2['ant1_amplitude'], window_length=5, polyorder=2)
+                        df_nc2['ant2_amplitude'] = savgol_filter(df_nc2['ant2_amplitude'], window_length=5, polyorder=2)
+                        
                         ant1_amplitude = df_nc2[['subcarriers', 'ant1_amplitude']].values
                         ant1_dbscan = hdbscan.HDBSCAN(min_samples=2*df_nc2.shape[1], core_dist_n_jobs=-1)
                         ant1_dbscan.fit(ant1_amplitude)
