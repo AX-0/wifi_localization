@@ -129,12 +129,12 @@ base_path = sys.argv[1]
 print(base_path)
 
 # Directory names under the base path
-directories = ['still'] #, 'still_with_receiver']
+directories = ['still', 'still_with_receiver']
 
 # Combine CSV files in each directory
-# for directory in directories:
-#     directory_path = os.path.join(base_path, directory)
-#     combine_csv_round(directory_path)
+for directory in directories:
+    directory_path = os.path.join(base_path, directory)
+    combine_csv_round(directory_path)
     
 # Combine all combined CSVs in each main directory
 for directory in directories:
