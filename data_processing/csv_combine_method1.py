@@ -4,7 +4,6 @@ import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
-from sklearn.cluster import DBSCAN
 import hdbscan
 
 # python csv_combine.py "C:\Users\alanx\OneDrive - The University of Sydney (Students)\Thesis\Deep Learning\wifi_localization\data\csv"
@@ -141,4 +140,4 @@ for directory in directories:
     dir_path = os.path.join(base_path, directory)
     combine_csv_mode(dir_path, f"{directory}.csv")
 
-# combine_final_csv_files(base_path, output_directory='.')
+combine_final_csv_files(base_path, output_directory='.')
