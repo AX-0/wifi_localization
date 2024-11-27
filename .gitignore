@@ -1,4 +1,6 @@
-*.csv
+data/
+models/
+logs/
 
 checkpoint/
 logs/
